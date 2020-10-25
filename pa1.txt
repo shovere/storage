@@ -1,0 +1,84 @@
+.section .data
+
+input_prompt:       .asciz "Input a string: "
+input_spec:         .asciz "%[^\n]"
+length_spec:        .asciz "String length: %d\n"
+palindrome_spec:    .asciz "String is a palindrome (T/F): %C\n"
+input:              .space 8
+
+.section .text
+
+.global main
+
+main:
+
+    ldr x0, =input_prompt 
+    bl printf
+    
+    ldr x0, =input_spec
+    ldr x1, =input
+    bl scanf
+    
+    ldr x19, =input
+    mov x2,0
+    
+    
+    LOOPLENGTH:ldrb w1, [x19, x2] 
+        subs w1, w1, WZR
+        b.eq  OUTLENGTH         
+        add  x2,x2, 1         
+        b LOOPLENGTH
+    
+OUTLENGTH:ldr x0, =length_spec
+    mov x1, x2
+    mov x20, x2
+    bl printf
+    
+    subs x0,x20,XZR
+    b.eq OUTPAL
+    
+    ands x0, x20, 1     
+    mov  x0, 0 
+    b.eq LOOPIFEVEN   
+    b.ne LOOPIFODD
+ 
+    LOOPIFODD:ldrb w2, [x19, x0] 
+    sub x1, x20, x0   
+    sub x1,x1,1       
+    ldrb w3, [x19, x1] 
+    subs w3, w3, w2   
+    b.ne NOUTPAL       
+    subs x1,x1,x0
+    b.eq OUTPAL
+    add x0,x0,1
+    b.ne LOOPIFODD
+    
+
+    LOOPIFEVEN: ldrb w2, [x19, x0]
+    sub x1, x20, x0
+    sub x1,x1,1
+    ldrb w3, [x19,x1]
+    subs w3,w3,w2
+    b.ne NOUTPAL
+    sub x1, x1,x0
+    subs x1,x1,1
+    b.eq OUTPAL
+    add x0,x0,1
+    b.ne LOOPIFEVEN
+
+NOUTPAL: ldr x0, =palindrome_spec
+    mov x1, 70
+    bl printf
+    b exit
+    
+OUTPAL: ldr x0, =palindrome_spec
+    mov x1, 84
+    bl printf
+    b exit
+    
+
+exit:
+    mov x0,0
+    mov x8, 93
+    svc 0
+    ret
